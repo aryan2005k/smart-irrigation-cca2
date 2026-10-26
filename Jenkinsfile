@@ -31,7 +31,7 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                bat 'docker build -t %IMAGE_NAME%:%IMAGE_TAG% .'
+                bat '"C:/Users/Lenovo/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" build -t smart-irrigation:cca2 .'
           }
     }
 
