@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: smart-irrigation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: smart-irrigation
+  template:
+    metadata:
+      labels:
+        app: smart-irrigation
+    spec:
+      containers:
+        - name: smart-irrigation
+          image: smart-irrigation:cca2
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5000

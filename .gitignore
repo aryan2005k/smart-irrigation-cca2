@@ -1,0 +1,8 @@
+.git-old-backup/
+smart-irrigation/
+__pycache__/
+*.py[cod]
+*.db
+.venv/
+venv/
+.env
