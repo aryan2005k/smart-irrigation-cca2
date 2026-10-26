@@ -15,12 +15,12 @@ pipeline {
             }
         }
 
-        stage('Check Python') {
-            steps {
-                bat 'python --version'
-                bat 'python -m pip --version'
-            }
-        }
+        stage('Install Dependencies') {
+    steps {
+        bat '"C:\\Users\\Lenovo\\AppData\\Local\\Programs\\Python\\Python314\\python.exe" -m pip install --user -r requirements.txt'
+        bat '"C:\\Users\\Lenovo\\AppData\\Local\\Programs\\Python\\Python314\\python.exe" -m pip install --user pytest'
+    }
+}
 
         stage('Install Dependencies') {
             steps {
