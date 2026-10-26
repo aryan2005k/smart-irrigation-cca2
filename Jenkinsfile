@@ -37,7 +37,7 @@ pipeline {
 
         stage('Verify Docker Image') {
             steps {
-                bat 'docker image inspect %IMAGE_NAME%:%IMAGE_TAG%'
+                bat '"C:/Users/Lenovo/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" image inspect smart-irrigation:cca2'
             }
         }
     }
