@@ -24,10 +24,10 @@ pipeline {
 
 
         stage('Run Tests') {
-            steps {
-                bat '"C:\Users\Lenovo\AppData\Local\Programs\Python\Python314\python.exe" -m pytest -v'
-            }
-        }
+    steps {
+        bat '"C:/Users/Lenovo/AppData/Local/Programs/Python/Python314/python.exe" -m pytest -v'
+    }
+}
 
         stage('Build Docker Image') {
             steps {
