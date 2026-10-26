@@ -25,7 +25,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                bat 'python -m pytest -v'
+                bat '"C:\Users\Lenovo\AppData\Local\Programs\Python\Python314\python.exe" -m pytest -v'
             }
         }
 
