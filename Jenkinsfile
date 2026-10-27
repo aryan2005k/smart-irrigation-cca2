@@ -30,13 +30,13 @@ pipeline {
             }
         }
 
-        stage('Build and Test') {
+        stage('Run Tests') {
             steps {
                 bat '"%PYTHON_EXE%" -m pytest -v'
             }
         }
 
-        stage('Docker Build') {
+        stage('Build Docker Image') {
             steps {
                 bat '"%DOCKER_EXE%" build -t %IMAGE_NAME%:%IMAGE_TAG% .'
                 bat '"%DOCKER_EXE%" image inspect %IMAGE_NAME%:%IMAGE_TAG%'
@@ -54,12 +54,21 @@ pipeline {
                 ]) {
                     bat '''
                         set AWS_DEFAULT_REGION=%AWS_REGION%
-                        "%AWS_EXE%" ecr get-login-password --region %AWS_REGION% | "%DOCKER_EXE%" login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
-                    '''
+                        set AWS_REGION=%AWS_REGION%
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
 
-                    bat '''
+                        "%AWS_EXE%" ecr get-login-password --region %AWS_REGION% | "%DOCKER_EXE%" login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
+
+                        if errorlevel 1 exit /b 1
+
                         "%DOCKER_EXE%" tag %IMAGE_NAME%:%IMAGE_TAG% %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%
+
+                        if errorlevel 1 exit /b 1
+
                         "%DOCKER_EXE%" push %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%
+
+                        if errorlevel 1 exit /b 1
                     '''
                 }
             }
