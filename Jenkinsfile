@@ -87,7 +87,7 @@ pipeline {
                         icacls "%SSH_KEY%" /inheritance:r
                         if errorlevel 1 exit /b 1
 
-                        icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
+                        icacls "%SSH_KEY%" /grant:r "*S-1-5-18:R"
                         if errorlevel 1 exit /b 1
 
                         ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "aws ecr get-login-password --region %AWS_REGION% | sudo docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && sudo docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && (sudo docker rm -f smart-irrigation || true) && sudo docker run -d --restart unless-stopped --name smart-irrigation -p 5000:5000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
