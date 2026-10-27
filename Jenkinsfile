@@ -1,4 +1,3 @@
-
 pipeline {
     agent any
 
@@ -17,6 +16,7 @@ pipeline {
     }
 
     stages {
+
         stage('Checkout SCM') {
             steps {
                 checkout scm
@@ -55,7 +55,8 @@ pipeline {
                 ]) {
                     bat '''
                         set AWS_DEFAULT_REGION=%AWS_REGION%
-                        set AWS_REGION=%AWS_REGION%
+                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
+                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
 
                         "%AWS_EXE%" ecr get-login-password --region %AWS_REGION% | "%DOCKER_EXE%" login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
 
@@ -73,13 +74,29 @@ pipeline {
             }
         }
 
-        bat '''
-    icacls "%SSH_KEY%" /inheritance:r
-    icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
-    if errorlevel 1 exit /b 1
+        stage('Deploy to EC2') {
+            steps {
+                withCredentials([
+                    sshUserPrivateKey(
+                        credentialsId: 'irrigation-ec2-ssh',
+                        keyFileVariable: 'SSH_KEY',
+                        usernameVariable: 'SSH_USER'
+                    )
+                ]) {
+                    bat '''
+                        icacls "%SSH_KEY%" /inheritance:r
+                        if errorlevel 1 exit /b 1
 
-    ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "aws ecr get-login-password --region %AWS_REGION% | sudo docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && sudo docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && (sudo docker rm -f smart-irrigation || true) && sudo docker run -d --restart unless-stopped --name smart-irrigation -p 5000:5000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
-'''
+                        icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
+                        if errorlevel 1 exit /b 1
+
+                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "aws ecr get-login-password --region %AWS_REGION% | sudo docker login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com && sudo docker pull %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG% && (sudo docker rm -f smart-irrigation || true) && sudo docker run -d --restart unless-stopped --name smart-irrigation -p 5000:5000 %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com/%ECR_REPOSITORY%:%IMAGE_TAG%"
+
+                        if errorlevel 1 exit /b 1
+                    '''
+                }
+            }
+        }
 
         stage('Verify Deployment') {
             steps {
@@ -91,7 +108,15 @@ pipeline {
                     )
                 ]) {
                     bat '''
+                        icacls "%SSH_KEY%" /inheritance:r
+                        if errorlevel 1 exit /b 1
+
+                        icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
+                        if errorlevel 1 exit /b 1
+
                         ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "sudo docker ps --filter name=smart-irrigation && curl -fsS http://localhost:5000/health"
+
+                        if errorlevel 1 exit /b 1
                     '''
                 }
             }
@@ -102,9 +127,11 @@ pipeline {
         always {
             echo 'Smart Irrigation CI/CD pipeline finished.'
         }
+
         success {
             echo 'All CI/CD stages passed successfully.'
         }
+
         failure {
             echo 'Pipeline failed. Check Console Output for details.'
         }
