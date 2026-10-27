@@ -111,7 +111,7 @@ pipeline {
                         icacls "%SSH_KEY%" /inheritance:r
                         if errorlevel 1 exit /b 1
 
-                        icacls "%SSH_KEY%" /grant:r "%USERNAME%:R"
+                        icacls "%SSH_KEY%" /grant:r "*S-1-5-18:R"
                         if errorlevel 1 exit /b 1
 
                         ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "sudo docker ps --filter name=smart-irrigation && curl -fsS http://localhost:5000/health"
