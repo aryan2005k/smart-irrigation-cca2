@@ -1,4 +1,4 @@
-
+```groovy
 pipeline {
     agent any
 
@@ -55,8 +55,7 @@ pipeline {
                 ]) {
                     bat '''
                         set AWS_DEFAULT_REGION=%AWS_REGION%
-                        set AWS_ACCESS_KEY_ID=%AWS_ACCESS_KEY_ID%
-                        set AWS_SECRET_ACCESS_KEY=%AWS_SECRET_ACCESS_KEY%
+                        set AWS_REGION=%AWS_REGION%
 
                         "%AWS_EXE%" ecr get-login-password --region %AWS_REGION% | "%DOCKER_EXE%" login --username AWS --password-stdin %AWS_ACCOUNT_ID%.dkr.ecr.%AWS_REGION%.amazonaws.com
 
@@ -119,3 +118,4 @@ pipeline {
         }
     }
 }
+```
