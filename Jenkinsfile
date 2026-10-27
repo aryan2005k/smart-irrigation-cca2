@@ -91,21 +91,20 @@ pipeline {
         }
 
         stage('Verify Deployment') {
-            steps {
-                withCredentials([
-                    sshUserPrivateKey(
-                        credentialsId: 'irrigation-ec2-ssh',
-                        keyFileVariable: 'SSH_KEY',
-                        usernameVariable: 'SSH_USER'
-                    )
-                ]) {
-                    bat '''
-                        ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "sudo docker ps --filter name=smart-irrigation && curl -fsS http://localhost:5000/health"
-                    '''
-                }
-            }
+    steps {
+        withCredentials([
+            sshUserPrivateKey(
+                credentialsId: 'irrigation-ec2-ssh',
+                keyFileVariable: 'SSH_KEY',
+                usernameVariable: 'SSH_USER'
+            )
+        ]) {
+            bat '''
+                ssh -i "%SSH_KEY%" -o StrictHostKeyChecking=no %SSH_USER%@%EC2_HOST% "sudo docker ps --filter name=smart-irrigation && curl -fsS http://localhost:5000/health"
+            '''
         }
     }
+}
 
     post {
         always {
